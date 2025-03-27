@@ -33,12 +33,12 @@ def parse_args():
     parser = ArgumentParser(description='You Only Need Me', allow_abbrev=False)
     parser.add_argument('--device_id', type=int, default=0, help='The Device Id for Experiment')
 
-    parser.add_argument('--communication_epoch', type=int, default=100, help='The Communication Epoch in Federated Learning')
+    parser.add_argument('--communication_epoch', type=int, default=50, help='The Communication Epoch in Federated Learning')
     parser.add_argument('--local_epoch', type=int, default=10, help='The Local Epoch for each Participant')
     parser.add_argument('--parti_num', type=int, default=10, help='The Number for Participants')
 
     parser.add_argument('--seed', type=int, default=0, help='The random seed.')
-    parser.add_argument('--rand_dataset', type=bool, default=True, help='The random seed.')
+    parser.add_argument('--rand_dataset', type=dict, default={ 'caltech': 3,'amazon': 2,'webcam':1, 'dslr': 4,'mnist': 6, 'syn': 7, 'usps': 4, 'svhn': 3}, help='The random seed.') #{'mnist': 6, 'syn': 7, 'usps': 4, 'svhn': 3}
 
     parser.add_argument('--model', type=str, default='fpl',  # moon fedinfonce
                         help='Model name.', choices=get_all_models())

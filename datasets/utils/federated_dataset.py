@@ -111,8 +111,10 @@ def partition_label_skew_loaders(train_dataset: datasets, test_dataset: datasets
 
 def partition_digits_domain_skew_loaders(train_datasets: list, test_datasets: list,
                                          setting: FederatedDataset) -> Tuple[list, list]:
-    ini_len_dict = {}
-    not_used_index_dict = {}
+    ini_len_dict = {} # Dictionary to store the initial length of each dataset type
+    not_used_index_dict = {} # Dictionary to keep track of the remaining unused indices for each dataset type
+
+    # Initialize not_used_index_dict with all available indices for each dataset type
     for i in range(len(train_datasets)):
         name = train_datasets[i].data_name
         if name not in not_used_index_dict:
@@ -129,6 +131,7 @@ def partition_digits_domain_skew_loaders(train_datasets: list, test_datasets: li
             not_used_index_dict[name] = np.arange(len(y_train))
             ini_len_dict[name] = len(y_train)
 
+    # Partition the training datasets into subsets for federated clients
     for index in range(len(train_datasets)):
         name = train_datasets[index].data_name
 
@@ -137,18 +140,22 @@ def partition_digits_domain_skew_loaders(train_datasets: list, test_datasets: li
         else:
             train_dataset = train_datasets[index].dataset
 
-        idxs = np.random.permutation(not_used_index_dict[name])
+        idxs = np.random.permutation(not_used_index_dict[name]) # Shuffle the unused indices to ensure randomness
 
+        # Select a subset of indices based on the percentage specified in settings
         percent = setting.percent_dict[name]
         selected_idx = idxs[0:int(percent * ini_len_dict[name])]
 
+        # Update the dictionary to remove the selected indices from the remaining pool
         not_used_index_dict[name] = idxs[int(percent * ini_len_dict[name]):]
 
+        # Create a data loader with a sampler using the selected indices
         train_sampler = SubsetRandomSampler(selected_idx)
         train_loader = DataLoader(train_dataset,
                                   batch_size=setting.args.local_batch_size, sampler=train_sampler)
         setting.train_loaders.append(train_loader)
 
+    # Create test loaders (no partitioning, just standard batching)
     for index in range(len(test_datasets)):
         name = test_datasets[index].data_name
         if name == 'syn':

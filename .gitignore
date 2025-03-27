@@ -1,0 +1,8 @@
+/datasets/fl_digits/
+/datasets/MNIST/
+/datasets/Office_Caltech_10/
+/datasets/syn/
+/datasets/test_32x32.mat
+/datasets/train_32x32.mat
+/datasets/usps.bz2
+/datasets/usps.t.bz2

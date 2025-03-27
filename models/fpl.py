@@ -88,12 +88,70 @@ class FPL(FederatedModel):
         return agg_protos_label
 
     def hierarchical_info_loss(self, f_now, label, all_f, mean_f, all_global_protos_keys):
-        f_pos = np.array(all_f)[all_global_protos_keys == label.item()][0].to(self.device)
-        f_neg = torch.cat(list(np.array(all_f)[all_global_protos_keys != label.item()])).to(self.device)
+        # print("\n=== DEBUGGING INFO ===")
+        #
+        # # Print type and shape of all_f elements
+        # print("Type of all_f:", type(all_f))
+        # if isinstance(all_f, list):
+        #     print(f"all_f contains {len(all_f)} elements.")
+        #     for i, item in enumerate(all_f):
+        #         print(f"Element {i}: Type={type(item)}, Shape={item.shape if hasattr(item, 'shape') else 'N/A'}")
+        # elif isinstance(all_f, torch.Tensor):
+        #     print(f"all_f is a tensor with shape: {all_f.shape}")
+        # elif isinstance(all_f, np.ndarray):
+        #     print(f"all_f is a numpy array with shape: {all_f.shape}")
+        #
+        # # Print type and shape of all_global_protos_keys
+        # print("\nType of all_global_protos_keys:", type(all_global_protos_keys))
+        # if isinstance(all_global_protos_keys, torch.Tensor):
+        #     print(f"Shape of all_global_protos_keys torch.Tensor: {all_global_protos_keys.shape}")
+        # elif isinstance(all_global_protos_keys, np.ndarray):
+        #     print(f"Shape of all_global_protos_keys np.array: {all_global_protos_keys.shape}")
+        #
+        # # Print label info
+        # print("\nType of label:", type(label))
+        # if isinstance(label, torch.Tensor):
+        #     print(f"Label torch.Tensor value: {label} {label.item()}, Shape: {label.shape}")
+        # elif isinstance(label, np.ndarray):
+        #     print(f"Label np.ndarray value: {label}, Shape: {label.shape}")
+        #
+        #
+        # print("\nType of meanf:", type(mean_f))
+        #
+        # print(f"meanf torch.Tensor value: Shape: {len(mean_f)}")
+
+        #
+        # # Check boolean indexing
+        # try:
+        #     indices = (all_global_protos_keys == label.item()).nonzero()
+        #     print(f"\nNumber of matching indices: {len(indices)}")
+        #     if len(indices) > 0:
+        #         print(f"First matching index: {indices[0]}")
+        #         print(f"Indexes: {indices}")
+        # except Exception as e:
+        #     print("\nError while checking indices:", e)
+        #
+        # print("\n======================\n")
+
+        # f_pos = np.array(all_f)[all_global_protos_keys == label.item()][0].to(self.device)
+        # f_neg = torch.cat(list(np.array(all_f)[all_global_protos_keys != label.item()])).to(self.device)
+
+        # f_pos = [f for i, f in enumerate(all_f) if all_global_protos_keys[i] == label.item()][0].to(self.device)
+        # f_neg = torch.cat([f for i, f in enumerate(all_f) if all_global_protos_keys[i] != label.item()]).to(self.device)
+        # xi_info_loss = self.calculate_infonce(f_now, f_pos, f_neg)
+        #
+        #
+        # # mean_f_pos = np.array(mean_f)[all_global_protos_keys == label.item()][0].to(self.device)
+        # mean_f_pos = [f for i, f in enumerate(all_f) if all_global_protos_keys[i] == label.item()][0].to(self.device)
+        # mean_f_pos = mean_f_pos.view(1, -1)
+
+        f_idx = np.where(all_global_protos_keys == label.item())[0][0]
+        f_pos = all_f[f_idx].to(self.device)
+        f_neg = torch.cat([f for i, f in enumerate(all_f) if i != f_idx]).to(self.device)
         xi_info_loss = self.calculate_infonce(f_now, f_pos, f_neg)
 
-        mean_f_pos = np.array(mean_f)[all_global_protos_keys == label.item()][0].to(self.device)
-        mean_f_pos = mean_f_pos.view(1, -1)
+        mean_f_pos = mean_f[f_idx].to(self.device)
+
         # mean_f_neg = torch.cat(list(np.array(mean_f)[all_global_protos_keys != label.item()]), dim=0).to(self.device)
         # mean_f_neg = mean_f_neg.view(9, -1)
 

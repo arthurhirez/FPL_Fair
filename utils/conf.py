@@ -8,11 +8,13 @@ def get_device(device_id) -> torch.device:
 
 
 def data_path() -> str:
-    return 'F://dataset/pic_cls/'
+    # return 'F://dataset/pic_cls/'
+    return "C:/Users/arthu/USPy/0_BEPE/1_FPL/datasets/"
 
 
 def base_path() -> str:
-    return './data/'
+    # return './data/'
+    return "C:/Users/arthu/USPy/0_BEPE/1_FPL/datasets/"
 
 
 def checkpoint_path() -> str:

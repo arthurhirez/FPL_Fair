@@ -97,8 +97,8 @@ class FedLeaDigits(FederatedDataset):
                               (0.229, 0.224, 0.225))])
 
     def get_data_loaders(self, selected_domain_list=[]):
-
-        using_list = self.DOMAINS_LIST if selected_domain_list == [] else selected_domain_list
+        # using_list = self.DOMAINS_LIST if selected_domain_list == [] else selected_domain_list
+        using_list = self.DOMAINS_LIST if len(selected_domain_list) == 0 else selected_domain_list
 
         nor_transform = self.Nor_TRANSFORM
         sin_chan_nor_transform = self.Singel_Channel_Nor_TRANSFORM
