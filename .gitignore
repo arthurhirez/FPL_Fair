@@ -6,3 +6,4 @@
 /datasets/train_32x32.mat
 /datasets/usps.bz2
 /datasets/usps.t.bz2
+/exp_0.pkl

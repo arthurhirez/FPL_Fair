@@ -7,7 +7,7 @@ from typing import Tuple
 from torchvision import datasets
 import numpy as np
 import torch.optim
-from Tbx_Sample import *
+
 
 class FederatedDataset:
     NAME = None
@@ -109,73 +109,11 @@ def partition_label_skew_loaders(train_dataset: datasets, test_dataset: datasets
     return setting.train_loaders, setting.test_loader, net_cls_counts
 
 
-# def partition_digits_domain_skew_loaders(train_datasets: list, test_datasets: list,
-#                                          setting: FederatedDataset) -> Tuple[list, list]:
-#     ini_len_dict = {} # Dictionary to store the initial length of each dataset type
-#     not_used_index_dict = {} # Dictionary to keep track of the remaining unused indices for each dataset type
-#
-#     label_maps = {}
-#     # Initialize not_used_index_dict with all available indices for each dataset type
-#     for i in range(len(train_datasets)):
-#         name = train_datasets[i].data_name
-#         if name not in not_used_index_dict:
-#             if name == 'svhn':
-#                 train_dataset = train_datasets[i].dataset
-#                 y_train = train_dataset.labels
-#             elif name == 'syn':
-#                 train_dataset = train_datasets[i].imagefolder_obj
-#                 y_train = train_dataset.targets
-#             else:
-#                 train_dataset = train_datasets[i].dataset
-#                 y_train = train_dataset.targets
-#
-#             not_used_index_dict[name] = np.arange(len(y_train))
-#             ini_len_dict[name] = len(y_train)
-#             label_maps[name] = y_train
-#     # Partition the training datasets into subsets for federated clients
-#     for index in range(len(train_datasets)):
-#         name = train_datasets[index].data_name
-#
-#         if name == 'syn':
-#             train_dataset = train_datasets[index].imagefolder_obj
-#         else:
-#             train_dataset = train_datasets[index].dataset
-#
-#         idxs = np.random.permutation(not_used_index_dict[name]) # Shuffle the unused indices to ensure randomness
-#
-#         # Select a subset of indices based on the percentage specified in settings
-#         percent = setting.percent_dict[name]
-#         selected_idx = idxs[0:int(percent * ini_len_dict[name])]
-#
-#         # Update the dictionary to remove the selected indices from the remaining pool
-#         not_used_index_dict[name] = idxs[int(percent * ini_len_dict[name]):]
-#
-#         # Create a data loader with a sampler using the selected indices
-#         train_sampler = SubsetRandomSampler(selected_idx)
-#         train_loader = DataLoader(train_dataset,
-#                                   batch_size=setting.args.local_batch_size, sampler=train_sampler)
-#         setting.train_loaders.append(train_loader)
-#
-#     # Create test loaders (no partitioning, just standard batching)
-#     for index in range(len(test_datasets)):
-#         name = test_datasets[index].data_name
-#         if name == 'syn':
-#             test_dataset = test_datasets[index].imagefolder_obj
-#         else:
-#             test_dataset = test_datasets[index].dataset
-#
-#         test_loader = DataLoader(test_dataset,
-#                                  batch_size=setting.args.local_batch_size, shuffle=False)
-#         setting.test_loader.append(test_loader)
-#
-#     return setting.train_loaders, setting.test_loader, label_maps
-
 def partition_digits_domain_skew_loaders(train_datasets: list, test_datasets: list,
                                          setting: FederatedDataset) -> Tuple[list, list]:
     ini_len_dict = {} # Dictionary to store the initial length of each dataset type
     not_used_index_dict = {} # Dictionary to keep track of the remaining unused indices for each dataset type
 
-    federation = []
     label_maps = {}
     # Initialize not_used_index_dict with all available indices for each dataset type
     for i in range(len(train_datasets)):
@@ -194,9 +132,6 @@ def partition_digits_domain_skew_loaders(train_datasets: list, test_datasets: li
             not_used_index_dict[name] = np.arange(len(y_train))
             ini_len_dict[name] = len(y_train)
             label_maps[name] = y_train
-
-    avaliable_indexes = get_sorted_label_indices(label_maps)
-
     # Partition the training datasets into subsets for federated clients
     for index in range(len(train_datasets)):
         name = train_datasets[index].data_name
@@ -209,57 +144,17 @@ def partition_digits_domain_skew_loaders(train_datasets: list, test_datasets: li
         idxs = np.random.permutation(not_used_index_dict[name]) # Shuffle the unused indices to ensure randomness
 
         # Select a subset of indices based on the percentage specified in settings
-        # percent = setting.percent_dict[name]
-        # selected_idx = idxs[0:int(percent * ini_len_dict[name])]
-        # print(type(selected_idx), len(selected_idx), selected_idx[:5])
-        # # Update the dictionary to remove the selected indices from the remaining pool
-        # not_used_index_dict[name] = idxs[int(percent * ini_len_dict[name]):]
-
         percent = setting.percent_dict[name]
+        selected_idx = idxs[0:int(percent * ini_len_dict[name])]
 
-        n_epochs = 20
+        # Update the dictionary to remove the selected indices from the remaining pool
+        not_used_index_dict[name] = idxs[int(percent * ini_len_dict[name]):]
 
-        init_pop = int(percent * ini_len_dict[name] * 0.2)
-        init_steps = n_epochs
-        init_period = int(0.2 * init_pop)
-        init_freq = 1
-        max_comb = 10
-        init_rate = 0.02
-        init_angular = 1
-        domain = name
-
-        add_participant_to_federation(
-            federation=federation,
-            available_indexes=avaliable_indexes[domain],
-            init_pop=init_pop,
-            init_steps=init_steps,
-            init_freq=init_freq,
-            init_period=init_period,
-            init_rate = init_rate,
-            init_angular = init_angular,
-            max_comb=max_comb
-        )
-
-
-        # selected_idx = np.array(federation[-1].get_sample_step(0))
-
-        # # Create a data loader with a sampler using the selected indices
-        # train_sampler = SubsetRandomSampler(selected_idx)
-        # train_loader = DataLoader(train_dataset,
-        #                           batch_size=setting.args.local_batch_size, sampler=train_sampler)
-        # setting.train_loaders.append(train_loader)
-
-        dl_tr_aux = []
-        for step in range(n_epochs):
-            selected_idx = np.array(federation[-1].get_sample_step(step))
-    
-            # Create a data loader with a sampler using the selected indices
-            train_sampler = SubsetRandomSampler(selected_idx)
-            train_loader = DataLoader(train_dataset,
-                                      batch_size=setting.args.local_batch_size, sampler=train_sampler)
-            
-            dl_tr_aux.append(train_loader)
-        setting.train_loaders.append(dl_tr_aux)
+        # Create a data loader with a sampler using the selected indices
+        train_sampler = SubsetRandomSampler(selected_idx)
+        train_loader = DataLoader(train_dataset,
+                                  batch_size=setting.args.local_batch_size, sampler=train_sampler)
+        setting.train_loaders.append(train_loader)
 
     # Create test loaders (no partitioning, just standard batching)
     for index in range(len(test_datasets)):
@@ -273,8 +168,8 @@ def partition_digits_domain_skew_loaders(train_datasets: list, test_datasets: li
                                  batch_size=setting.args.local_batch_size, shuffle=False)
         setting.test_loader.append(test_loader)
 
-    return setting.train_loaders, setting.test_loader, federation
-        
+    return setting.train_loaders, setting.test_loader, label_maps
+
 
 def partition_office_domain_skew_loaders_new(train_datasets: list, test_datasets: list,
                                              setting: FederatedDataset) -> Tuple[list, list]:

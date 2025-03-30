@@ -144,9 +144,9 @@ class FedLeaDigits(FederatedDataset):
                                             download=True, transform=test_transform, data_name=domain)
 
             test_dataset_list.append(test_dataset)
-        traindls, testdls, federation = partition_digits_domain_skew_loaders(train_dataset_list, test_dataset_list, self)
+        traindls, testdls, label_dict = partition_digits_domain_skew_loaders(train_dataset_list, test_dataset_list, self)
 
-        return traindls, testdls, federation#, train_dataset_list, test_dataset_list
+        return traindls, testdls, label_dict, train_dataset_list, test_dataset_list
 
     @staticmethod
     def get_transform():
